@@ -118,7 +118,7 @@ def home():
     Serves the J.A.R.V.I.S. Interface.
     Ensure 'ats_interface.html' is inside a folder named 'templates'.
     """
-    return render_template("resume2.html")
+    return render_template("index.html")
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
