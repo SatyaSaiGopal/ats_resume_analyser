@@ -12,7 +12,7 @@ import PyPDF2
 # 1. SETUP API KEY:
 # Ideally, set this in your environment variables: export GEMINI_API_KEY="your_key"
 # Or fallback to the provided key (ensure this key is valid)
-api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyBf81Fowu0-EAiO6KArKTz8GpkXf1CkWLo") 
+api_key = os.environ.get("GEMINI_API_KEY", "YOUR_API_KEY") 
 client = genai.Client(api_key=api_key)
 
 UPLOAD_FOLDER = "uploads"
