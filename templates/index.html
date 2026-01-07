@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. | ATS Diagnostic Protocol</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --primary-glow: #00f3ff;
+            --secondary-glow: #0088ff;
+            --accent-red: #ff003c;
+            --accent-gold: #ffd700;
+            --glass-bg: rgba(0, 15, 30, 0.75);
+            --glass-border: rgba(0, 243, 255, 0.3);
+            --text-main: #e0f7ff;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-data: 'Rajdhani', sans-serif;
+            --chemistry-green: #0aff6c;
+        }
+
+        * {
+            box-sizing: border-box;
+            cursor: none;
+            /* Custom cursor active */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: var(--text-main);
+            font-family: var(--font-data);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+        }
+
+        /* --- Custom Cursor --- */
+        #cursor {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary-glow);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            box-shadow: 0 0 10px var(--primary-glow);
+            transition: width 0.2s, height 0.2s;
+            mix-blend-mode: screen;
+        }
+
+        #cursor::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* --- Background & Hologram Beams --- */
+        .background-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 90%, rgba(0, 40, 80, 0.7) 0%, rgba(0, 0, 0, 0.9) 80%);
+            z-index: -3;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* --- Repulsor & Beams --- */
+        .repulsor-anchor {
+            position: absolute;
+            bottom: 5%;
+            left: 10%;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 10%, var(--primary-glow) 40%, transparent 70%);
+            box-shadow: 0 0 40px var(--primary-glow), 0 0 80px var(--secondary-glow);
+            z-index: 5;
+            animation: reactor-pulse 3s infinite ease-in-out;
+            opacity: 0.9;
+        }
+
+        .holo-beams {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .beam {
+            stroke: var(--primary-glow);
+            stroke-width: 1.5;
+            fill: none;
+            stroke-dasharray: 5, 15;
+            opacity: 0.5;
+            filter: drop-shadow(0 0 5px var(--primary-glow));
+            animation: beam-flow 0.5s linear infinite;
+        }
+
+        /* --- IRON MAN HOLOGRAM --- */
+        .iron-man-container {
+            position: fixed;
+            top: 50%;
+            left: 1%;
+            /* Positioned left as requested */
+            transform: translateY(-50%);
+            width: 380px;
+            height: 80vh;
+            z-index: 5;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .iron-man-wrapper {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            filter: drop-shadow(0 0 20px rgba(0, 243, 255, 0.5));
+            animation: holo-float 6s ease-in-out infinite;
+        }
+
+        .iron-man-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: left center;
+            filter: hue-rotate(180deg) brightness(1.1) contrast(1.1);
+            opacity: 0.95;
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+
+        .iron-man-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 45%, rgba(0, 243, 255, 0.3) 50%, transparent 55%);
+            background-size: 100% 6px;
+            animation: scanline 4s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.2;
+        }
+
+        /* Audio Reactive Elements */
+        .holo-eye {
+            position: absolute;
+            width: 20px;
+            height: 6px;
+            background: #fff;
+            border-radius: 1px;
+            box-shadow: 0 0 10px #fff, 0 0 20px var(--primary-glow);
+            opacity: 0.9;
+            top: 25%;
+            z-index: 30;
+            mix-blend-mode: screen;
+        }
+
+        .eye-left {
+            left: 40%;
+            transform: rotate(5deg);
+        }
+
+        .eye-right {
+            right: 40%;
+            transform: rotate(-5deg);
+        }
+
+        .holo-mouth-viz {
+            position: absolute;
+            top: 32%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            z-index: 30;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+
+        .mouth-bar {
+            width: 4px;
+            height: 4px;
+            background: var(--primary-glow);
+            box-shadow: 0 0 5px var(--primary-glow);
+            transition: height 0.05s;
+        }
+
+        .talking .holo-mouth-viz {
+            opacity: 1;
+        }
+
+        .talking .holo-mouth-viz .mouth-bar {
+            background: var(--accent-red);
+            box-shadow: 0 0 15px var(--accent-red);
+            animation: equalizer 0.2s infinite ease-in-out alternate;
+        }
+
+        .talking .holo-eye {
+            box-shadow: 0 0 25px #fff, 0 0 50px var(--primary-glow);
+            opacity: 1;
+        }
+
+        /* Status Labels */
+        .hologram-status-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            z-index: 25;
+            margin-left: 20px;
+            margin-top: 40px;
+        }
+
+        .hologram-label {
+            font-family: var(--font-tech);
+            color: var(--primary-glow);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            background: rgba(0, 15, 30, 0.9);
+            padding: 4px 10px;
+            border-left: 3px solid var(--primary-glow);
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        /* --- Main UI Container --- */
+        .holo-container {
+            width: 1000px;
+            height: 650px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+            display: grid;
+            grid-template-columns: 260px 1fr 220px;
+            grid-template-rows: 80px 1fr 120px;
+            gap: 20px;
+            padding: 20px;
+            margin: 0 auto;
+            z-index: 10;
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Header */
+        .header-panel {
+            grid-column: 1 / -1;
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 20% 100%, 15% 70%, 5% 70%, 0 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 243, 255, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .system-status {
+            font-family: var(--font-tech);
+            font-size: 1.5rem;
+            color: var(--primary-glow);
+            text-shadow: 0 0 10px var(--primary-glow);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Sidebar */
+        .sidebar-panel {
+            grid-row: 2 / 4;
+            clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%, 0 10%);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .hex-btn {
+            width: 100%;
+            height: 65px;
+            background: transparent;
+            border: none;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--font-tech);
+            color: var(--text-main);
+            font-size: 1rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .hex-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 243, 255, 0.05);
+            clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+            border: 1px solid var(--primary-glow);
+            transition: all 0.3s;
+            z-index: -1;
+        }
+
+        .hex-btn:hover .hex-bg {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: scale(1.05);
+        }
+
+        .hex-btn.active .hex-bg {
+            background: var(--primary-glow);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .hex-btn.active {
+            color: #000;
+            font-weight: 800;
+        }
+
+        .param-list {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .param-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .param-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--primary-glow);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--primary-glow);
+        }
+
+        /* --- CENTER PANEL: ATS RESUME ANALYZER --- */
+        .analysis-panel {
+            grid-column: 2 / 3;
+            grid-row: 2 / 4;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            clip-path: polygon(2% 0, 98% 0, 100% 2%, 100% 98%, 98% 100%, 2% 100%, 0 98%, 0 2%);
+            padding: 30px;
+        }
+
+        /* JD Input Area */
+        .jd-container {
+            width: 100%;
+            height: 120px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .jd-input {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 15, 30, 0.6);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            font-family: monospace;
+            font-size: 0.8rem;
+            padding: 15px;
+            resize: none;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .jd-input:focus {
+            border-color: var(--primary-glow);
+            box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.1);
+        }
+
+        .jd-label {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #000;
+            padding: 0 5px;
+            font-size: 0.7rem;
+            color: var(--primary-glow);
+            font-family: var(--font-tech);
+            letter-spacing: 1px;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Upload Zone */
+        #upload-zone {
+            flex-grow: 1;
+            border: 2px dashed var(--glass-border);
+            background: rgba(0, 15, 30, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            min-height: 200px;
+        }
+
+        #upload-zone:hover {
+            border-color: var(--primary-glow);
+            background: rgba(0, 243, 255, 0.05);
+            box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        #upload-zone.dragover {
+            border-color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.05);
+            transform: scale(0.98);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-glow);
+            margin-bottom: 20px;
+            animation: float-icon 3s ease-in-out infinite;
+        }
+
+        .upload-text {
+            font-family: var(--font-tech);
+            font-size: 1rem;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        /* Results Zone */
+        #results-zone {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            gap: 20px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .score-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: var(--font-tech);
+            font-size: 2.5rem;
+            color: var(--primary-glow);
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .score-circle::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-glow);
+            animation: spin 2s linear infinite;
+        }
+
+        .score-description {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            background: rgba(0, 243, 255, 0.05);
+            border-left: 2px solid var(--primary-glow);
+            padding: 10px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .feedback-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .feedback-item {
+            background: rgba(255, 0, 60, 0.1);
+            border-left: 3px solid var(--accent-red);
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .feedback-item i {
+            color: var(--accent-red);
+        }
+
+        .feedback-item.good {
+            background: rgba(10, 255, 108, 0.1);
+            border-color: var(--chemistry-green);
+        }
+
+        .feedback-item.good i {
+            color: var(--chemistry-green);
+        }
+
+        /* Right Data Panel */
+        .data-panel {
+            grid-column: 3 / 4;
+            grid-row: 2 / 4;
+            clip-path: polygon(0 0, 80% 0, 100% 20%, 100% 100%, 0 100%, 0 80%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .arc-reactor-viz {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .ring-spin {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border-top: 5px solid var(--primary-glow);
+            border-right: 5px solid transparent;
+            animation: spin 2s linear infinite;
+            filter: drop-shadow(0 0 5px var(--primary-glow));
+        }
+
+        /* Animations */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes reactor-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+                box-shadow: 0 0 60px var(--primary-glow);
+            }
+        }
+
+        @keyframes beam-flow {
+            0% {
+                stroke-dashoffset: 0;
+            }
+
+            100% {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        @keyframes holo-float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @keyframes scanline {
+            0% {
+                top: -20%;
+            }
+
+            100% {
+                top: 120%;
+            }
+        }
+
+        @keyframes equalizer {
+            0% {
+                height: 4px;
+            }
+
+            100% {
+                height: 12px;
+            }
+        }
+
+        @keyframes float-icon {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-glow);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="cursor"></div>
+    <div class="background-layer"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Iron Man Hologram (Left Side) -->
+    <div class="iron-man-container" id="iron-man-struct">
+        <!-- Text First -->
+        <div class="hologram-status-group">
+            <div class="hologram-label" id="status-main">ATS MODULE ACTIVE</div>
+            <div class="hologram-label" style="opacity: 0.7;">AWAITING UPLOAD</div>
+        </div>
+
+        <!-- Image Below Text -->
+        <div class="iron-man-wrapper">
+            <img src="https://cdn.dribbble.com/users/115601/screenshots/4669865/media/30e38a2e7208c5c7820a3b2b8e3a241b.gif"
+                alt="Iron Man Interface" class="iron-man-img"
+                onerror="this.onerror=null; this.src='https://w0.peakpx.com/wallpaper/116/226/HD-wallpaper-iron-man-art-avengers-marvel-superheroes-tony-stark.jpg'; this.style.opacity='0.6';">
+
+
+            <div class="holo-eye eye-left"></div>
+            <div class="holo-eye eye-right"></div>
+
+            <div class="holo-mouth-viz">
+                <div class="mouth-bar" style="animation-delay: 0s"></div>
+                <div class="mouth-bar" style="animation-delay: 0.1s"></div>
+                <div class="mouth-bar" style="animation-delay: 0.2s"></div>
+                <div class="mouth-bar" style="animation-delay: 0.1s"></div>
+                <div class="mouth-bar" style="animation-delay: 0s"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="repulsor-anchor" id="repulsor"></div>
+
+    <svg class="holo-beams" width="100%" height="100%">
+        <path id="beam1" class="beam" d="" />
+        <path id="beam2" class="beam" d="" />
+        <path id="beam3" class="beam" d="" />
+        <path id="beam4" class="beam" d="" />
+    </svg>
+
+    <!-- Main UI -->
+    <div class="holo-container" id="interface">
+
+        <!-- Header -->
+        <div class="panel header-panel">
+            <div class="system-status">
+                <i class="fas fa-file-contract fa-spin" style="font-size: 1.2rem;"></i>
+                <span id="system-title">ATS DIAGNOSTIC PROTOCOL</span>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-family: 'Orbitron'; color: var(--accent-red); font-size: 0.8rem; margin-bottom: 2px;">
+                    SECURE SERVER</div>
+                <div style="font-size: 0.7rem; color: #aaa;">IP: 192.168.STARK.ATS</div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="panel sidebar-panel">
+            <div style="font-size: 0.8rem; color: var(--secondary-glow); margin-bottom: -10px;">OPERATIONS</div>
+            <div class="mode-selector">
+                <button class="hex-btn active" onclick="resetInterface()">
+                    <div class="hex-bg"></div>
+                    <i class="fas fa-upload" style="margin-right: 12px;"></i> NEW SCAN
+                </button>
+            </div>
+
+            <!-- New User Friendly Section -->
+            <div style="margin-top: 10px;">
+                <div style="font-size: 0.8rem; color: var(--secondary-glow); margin-bottom: 5px;">SCAN PARAMETERS</div>
+                <div class="param-list">
+                    <div class="param-item">
+                        <div class="param-dot"></div> KEYWORD DENSITY
+                    </div>
+                    <div class="param-item">
+                        <div class="param-dot"></div> FORMATTING CHECKS
+                    </div>
+                    <div class="param-item">
+                        <div class="param-dot"></div> CONTACT INFO
+                    </div>
+                    <div class="param-item">
+                        <div class="param-dot"></div> IMPACT METRICS
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: auto; border-top: 1px solid rgba(0,243,255,0.3); padding-top: 20px;">
+                <div
+                    style="font-size: 0.7rem; color: #888; margin-bottom: 8px; display:flex; justify-content:space-between;">
+                    <span>SCANNER LOAD</span>
+                    <span style="color:var(--accent-red)">IDLE</span>
+                </div>
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1);">
+                    <div id="load-bar"
+                        style="width: 10%; height: 100%; background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); transition: width 0.5s;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: ATS ANALYZER PANEL -->
+        <div class="panel analysis-panel">
+
+            <div id="upload-wrapper" style="height: 100%; display: flex; flex-direction: column;">
+                <!-- NEW: Job Description Input -->
+                <div class="jd-container">
+                    <span class="jd-label">MISSION OBJECTIVE (JOB DESCRIPTION)</span>
+                    <textarea id="jd-input" class="jd-input"
+                        placeholder="Paste the target Job Description here. This data is required for matching protocol..."></textarea>
+                </div>
+
+                <!-- Upload Zone -->
+                <div id="upload-zone" onclick="document.getElementById('file-input').click()">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <div class="upload-text">DRAG RESUME HERE OR CLICK TO INITIALIZE</div>
+                    <div style="font-size: 0.8rem; color: var(--secondary-glow); margin-top: 10px;">SUPPORTS: PDF, DOCX,
+                        TXT</div>
+                    <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+            </div>
+
+            <!-- 2. Results View -->
+            <div id="results-zone">
+                <div class="score-header">
+                    <div>
+                        <div style="font-size: 0.8rem; color: #888;">ATS SCORE</div>
+                        <div style="font-family: 'Rajdhani'; font-size: 1.2rem; color: var(--text-main);">CANDIDATE
+                            ANALYSIS</div>
+                    </div>
+                    <div class="score-circle" id="score-val">0</div>
+                </div>
+
+                <!-- New Score Context Text -->
+                <div class="score-description" id="score-text-context">
+                    A score above 70 indicates a high probability of passing automated filters. Your resume is being
+                    analyzed against standard Fortune 500 criteria.
+                </div>
+
+                <div style="font-size: 0.8rem; color: var(--secondary-glow); margin-bottom: 5px;">DIAGNOSTIC REPORT
+                </div>
+                <div class="feedback-list" id="feedback-list">
+                    <!-- Items injected by JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Data Panel -->
+        <div class="panel data-panel">
+            <div style="font-family: 'Orbitron'; font-size: 0.9rem; letter-spacing: 2px; color: var(--text-main);">
+                STATUS</div>
+            <div class="arc-reactor-viz">
+                <div class="ring-spin"></div>
+                <i class="fas fa-shield-alt" style="color: #fff; font-size: 2rem; text-shadow: 0 0 15px #fff;"
+                    id="status-icon"></i>
+            </div>
+
+            <div style="width: 100%; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 5px;">
+                    <span>PARSING SPEED</span>
+                    <span id="speed-stat">0 MB/s</span>
+                </div>
+                <div style="display: flex; gap: 3px;">
+                    <div style="height: 12px; width: 12px; background: var(--primary-glow); opacity: 1;"></div>
+                    <div style="height: 12px; width: 12px; background: var(--primary-glow); opacity: 0.8;"></div>
+                    <div style="height: 12px; width: 12px; background: var(--primary-glow); opacity: 0.6;"></div>
+                    <div style="height: 12px; width: 12px; background: #333;"></div>
+                </div>
+            </div>
+
+            <!-- Data Stream -->
+            <div id="console-log"
+                style="margin-top: auto; font-family: monospace; font-size: 0.65rem; color: var(--secondary-glow); opacity: 0.8; overflow: hidden; width: 100%; text-align: left; line-height: 1.4; height: 100px;">
+                > SYSTEM_READY<br>
+                > WAITING_FOR_INPUT...
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- UI UTILITIES ---
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+
+            // Parallax
+            const container = document.getElementById('interface');
+            const x = (window.innerWidth / 2 - e.clientX) / 60;
+            const y = (window.innerHeight / 2 - e.clientY) / 60;
+            container.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+
+            updateBeams();
+        });
+
+        function updateBeams() {
+            const repulsor = document.getElementById('repulsor').getBoundingClientRect();
+            const interfaceBox = document.getElementById('interface').getBoundingClientRect();
+
+            const rX = repulsor.left + repulsor.width / 2;
+            const rY = repulsor.top + repulsor.height / 2;
+
+            const p1 = { x: interfaceBox.left + 20, y: interfaceBox.top + 80 };
+            const p2 = { x: interfaceBox.left + 20, y: interfaceBox.bottom - 80 };
+            const p3 = { x: interfaceBox.right - 20, y: interfaceBox.bottom - 20 };
+            const p4 = { x: interfaceBox.right - 20, y: interfaceBox.top + 20 };
+
+            document.getElementById('beam1').setAttribute('d', `M${rX},${rY} L${p1.x},${p1.y}`);
+            document.getElementById('beam2').setAttribute('d', `M${rX},${rY} L${p2.x},${p2.y}`);
+            document.getElementById('beam3').setAttribute('d', `M${rX},${rY} L${p3.x},${p3.y}`);
+            document.getElementById('beam4').setAttribute('d', `M${rX},${rY} L${p4.x},${p4.y}`);
+        }
+        window.onresize = updateBeams;
+
+        // --- DRAG AND DROP LOGIC ---
+        const dropZone = document.getElementById('upload-zone');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+            // RESET INPUT VALUE so same file can be selected again
+            e.target.value = '';
+        }
+        function handleFiles(files) {
+            if (!files || files.length === 0) return;
+            analyzeResume(files[0]);
+        }
+
+
+        function logToConsole(text) {
+            const el = document.getElementById('console-log');
+            el.innerHTML += `> ${text}<br>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function resetInterface() {
+            document.getElementById('upload-wrapper').style.display = 'flex';
+            document.getElementById('results-zone').style.display = 'none';
+            document.getElementById('score-val').innerText = '0';
+            document.getElementById('score-val').style.color = 'var(--primary-glow)';
+            document.getElementById('jd-input').value = ""; // Clear JD
+            logToConsole("INTERFACE_RESET");
+            speakText("Ready for next document.");
+        }
+
+        // --- BACKEND API INTEGRATION ---
+        async function analyzeResume(file) {
+            try {
+                // UI: start loading
+                logToConsole(`FILE_DETECTED: ${file.name}`);
+                document.getElementById("status-main").innerText = "UPLOADING...";
+                document.getElementById("load-bar").style.width = "40%";
+                document.getElementById("load-bar").style.backgroundColor = "var(--primary-glow)";
+
+                // Job description (from textarea or fallback)
+                const jdInput = document.getElementById("jd-input");
+                const jobDescription = jdInput && jdInput.value.trim()
+                    ? jdInput.value.trim()
+                    : "Software engineer with Python, Flask, APIs, and ATS systems";
+
+                // Prepare form data
+                const formData = new FormData();
+                formData.append("resume", file);
+                formData.append("job_description", jobDescription);
+                if (!jdInput || !jdInput.value.trim()) {
+                    alert("Please enter a Job Description before uploading a resume.");
+                    document.getElementById("status-main").innerText = "AWAITING INPUT";
+                    document.getElementById("load-bar").style.width = "0%";
+                    return;
+                }
+
+                // Backend call
+                // Using relative path '/analyze' to work with Flask serving this page
+                const response = await fetch("/analyze", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.error("Backend returned error:", errText);
+                    throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Pass data to the display logic
+                displayResults(data);
+
+            } catch (error) {
+                console.error(error);
+                logToConsole(`FATAL_ERROR: ${error.message}`);
+                document.getElementById("status-main").innerText = "CONNECTION FAILED";
+                document.getElementById("load-bar").style.width = "100%";
+                document.getElementById("load-bar").style.backgroundColor = "var(--accent-red)";
+
+                speakText("Analysis failed. Check system logs.");
+                alert("Analysis failed: " + error.message);
+            }
+        }
+
+
+        function displayResults(data) {
+            document.getElementById('upload-wrapper').style.display = 'none';
+            document.getElementById('results-zone').style.display = 'flex';
+            document.getElementById('load-bar').style.width = '100%';
+
+            // Score
+            const score = data.match_percentage || 0;
+            const scoreEl = document.getElementById('score-val');
+            scoreEl.innerText = score;
+
+            let scoreText = data.summary_feedback || "Analysis complete.";
+
+            // Color Coding
+            if (score < 50) {
+                scoreEl.style.color = 'var(--accent-red)';
+            } else if (score < 75) {
+                scoreEl.style.color = 'var(--accent-gold)';
+            } else {
+                scoreEl.style.color = 'var(--chemistry-green)';
+            }
+
+            document.getElementById('score-text-context').innerText = scoreText;
+
+            // Generate List Items
+            const list = document.getElementById('feedback-list');
+            list.innerHTML = '';
+
+            // Add Formatting Issues (Bad)
+            if (data.formatting_issues && data.formatting_issues.length > 0) {
+                data.formatting_issues.forEach(issue => {
+                    addFeedbackItem(list, issue, 'bad');
+                });
+            }
+
+            // Add Missing Skills (Bad)
+            if (data.missing_skills && data.missing_skills.length > 0) {
+                data.missing_skills.forEach(skill => {
+                    addFeedbackItem(list, `Missing Skill: ${skill}`, 'bad');
+                });
+            }
+
+            // Add Matching Skills (Good)
+            if (data.matching_skills && data.matching_skills.length > 0) {
+                data.matching_skills.forEach(skill => {
+                    addFeedbackItem(list, `Matched: ${skill}`, 'good');
+                });
+            }
+
+            document.getElementById('status-main').innerText = "COMPLETE";
+            logToConsole("RENDER_COMPLETE");
+
+            speakText(`Analysis complete. Match score is ${score}.`);
+        }
+
+        function addFeedbackItem(list, text, type) {
+            const item = document.createElement('div');
+            item.className = `feedback-item ${type}`;
+            const icon = type === 'good' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+            item.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+            list.appendChild(item);
+        }
+
+        // --- VOICE LOGIC ---
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+
+            let selectedVoice = voices.find(v => v.name.includes('Google UK English Male')) ||
+                voices.find(v => v.name.includes('UK English Male')) ||
+                voices.find(v => v.name.includes('Daniel')) ||
+                voices.find(v => v.lang === 'en-GB') ||
+                voices.find(v => v.lang === 'en-US');
+
+            if (selectedVoice) utterance.voice = selectedVoice;
+            utterance.rate = 1.0;
+            utterance.pitch = 0.8;
+            utterance.volume = 1.0;
+
+            const ironManStruct = document.getElementById('iron-man-struct');
+            const statusText = document.getElementById('status-main');
+
+            utterance.onstart = () => {
+                if (ironManStruct) ironManStruct.classList.add('talking');
+                if (statusText) statusText.innerText = "VOCALIZING...";
+            };
+            utterance.onend = () => {
+                if (ironManStruct) ironManStruct.classList.remove('talking');
+                if (statusText) statusText.innerText = "SYSTEM ONLINE";
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Init
+        window.onload = () => {
+            updateBeams();
+            setTimeout(() => {
+                speakText("A.T.S. Diagnostic Protocol initialized. Awaiting Mission Objective.");
+            }, 1000);
+        };
+
+    </script>
+</body>
+
+</html>
